@@ -4,13 +4,15 @@ const WebSocket = require('ws');
 const axios = require('axios');
 const app = express();
 
-// ── CONFIG (set these in Glitch .env) ──
-const CLIENT_ID     = process.env.CLIENT_ID     || 'dvsitq6ni6kjraglxa9z0kra8exfxe';
-const CLIENT_SECRET = process.env.CLIENT_SECRET || 'nw8mb5d9x2qw30pb002qu1ko276nuj';
-const SECRET        = process.env.WEBHOOK_SECRET || 'asiandiva_blerp_secret_2026';
-const PORT          = process.env.PORT           || 10000;
+// ── CONFIG ──
+const CLIENT_ID     = process.env.CLIENT_ID      || 'dvsitq6ni6kjraglxa9z0kra8exfxe';
+const CLIENT_SECRET = process.env.CLIENT_SECRET  || 'nw8mb5d9x2qw30pb002qu1ko276nuj';
+const SECRET        = process.env.WEBHOOK_SECRET  || 'asiandiva_blerp_secret_2026';
+const PORT          = process.env.PORT            || 10000;
+const SCOPES        = 'bits:read channel:read:subscriptions';
 
 let appAccessToken  = null;
+let userAccessToken = null;
 let broadcasterId   = null;
 let broadcasterName = null;
 
@@ -117,7 +119,7 @@ async function subscribeToEvents(callbackUrl) {
       }, {
         headers: {
           'Client-ID': CLIENT_ID,
-          'Authorization': `Bearer ${appAccessToken}`,
+          'Authorization': `Bearer ${userAccessToken || appAccessToken}`,
           'Content-Type': 'application/json'
         }
       });
@@ -185,11 +187,8 @@ app.get('/', (req, res) => {
   ${!broadcasterId ? `
   <div class="card">
     <h2 style="color:#FF6EB4">Connect to Twitch</h2>
-    <form action="/setup" method="POST" style="display:flex;gap:8px;flex-direction:column;">
-      <label>Your Twitch username:</label>
-      <input name="username" placeholder="asiandiva__" style="padding:8px;border-radius:8px;border:none;font-size:14px;" />
-      <button type="submit" style="padding:10px;background:linear-gradient(135deg,#E0438A,#C084FC);color:#fff;border:none;border-radius:8px;font-weight:800;cursor:pointer;">Connect ✦</button>
-    </form>
+    <p>Click below to authorize with your Twitch account:</p>
+    <a class="btn" href="/auth/twitch">🟣 Login with Twitch</a>
   </div>` : `
   <div class="card">
     <h2 style="color:#4ade80">✅ All Set!</h2>
@@ -201,6 +200,53 @@ app.get('/', (req, res) => {
 </body>
 </html>
   `);
+});
+
+// ── TWITCH OAUTH ──
+app.get('/auth/twitch', (req, res) => {
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: `https://${req.get('host')}/auth/callback`,
+    response_type: 'code',
+    scope: SCOPES,
+    force_verify: 'true'
+  });
+  res.redirect(`https://id.twitch.tv/oauth2/authorize?${params}`);
+});
+
+app.get('/auth/callback', async (req, res) => {
+  const code = req.query.code;
+  if (!code) return res.redirect('/');
+  try {
+    const tokenRes = await axios.post('https://id.twitch.tv/oauth2/token', null, {
+      params: {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: `https://${req.get('host')}/auth/callback`
+      }
+    });
+    userAccessToken = tokenRes.data.access_token;
+
+    // Get broadcaster info
+    const userRes = await axios.get('https://api.twitch.tv/helix/users', {
+      headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${userAccessToken}` }
+    });
+    broadcasterId   = userRes.data.data[0].id;
+    broadcasterName = userRes.data.data[0].display_name;
+    console.log(`✅ OAuth authorized for ${broadcasterName}`);
+
+    // Subscribe to events
+    const callbackUrl = `https://${req.get('host')}`;
+    await deleteOldSubscriptions();
+    await subscribeToEvents(callbackUrl);
+
+    res.redirect('/');
+  } catch(e) {
+    console.error('OAuth error:', e.response?.data || e.message);
+    res.redirect('/');
+  }
 });
 
 // ── SETUP FORM HANDLER ──

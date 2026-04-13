@@ -8,7 +8,7 @@ const app = express();
 const CLIENT_ID     = process.env.CLIENT_ID     || 'dvsitq6ni6kjraglxa9z0kra8exfxe';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || 'nw8mb5d9x2qw30pb002qu1ko276nuj';
 const SECRET        = process.env.WEBHOOK_SECRET || 'asiandiva_blerp_secret_2026';
-const PORT          = process.env.PORT           || 3000;
+const PORT          = process.env.PORT           || 10000;
 
 let appAccessToken  = null;
 let broadcasterId   = null;
@@ -309,7 +309,7 @@ app.post('/webhook', (req, res) => {
 });
 
 // ── START SERVER ──
-const server = app.listen(PORT, async () => {
+const server = app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 

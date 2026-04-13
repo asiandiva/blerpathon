@@ -205,34 +205,30 @@ app.get('/', (req, res) => {
 
 // ── SETUP FORM HANDLER ──
 app.post('/setup', async (req, res) => {
-  const username = req.body.username?.toLowerCase().trim();
-  if (!username) return res.redirect('/');
+  try {
+    const username = (req.body.username || '').toLowerCase().trim();
+    console.log('Setup request for username:', username);
+    if (!username) return res.redirect('/');
 
-  // Force HTTPS — Render serves http internally but external is always https
-  const host = req.get('host');
-  const callbackUrl = `https://${host}`;
+    const host = req.get('host');
+    const callbackUrl = `https://${host}`;
+    console.log('Callback URL:', callbackUrl);
 
-  // Show loading page immediately
-  res.setHeader('Content-Type', 'text/html');
-  res.write(`<!DOCTYPE html><html><head><title>Connecting...</title>
-    <style>
-      body{font-family:sans-serif;background:#0d0618;color:#fff;text-align:center;padding:3rem;}
-      h2{color:#FF6EB4;font-size:1.8rem;}
-      p{color:rgba(255,255,255,0.7);}
-      .spinner{width:40px;height:40px;border:4px solid rgba(255,110,180,0.3);border-top-color:#FF6EB4;border-radius:50%;animation:spin 0.8s linear infinite;margin:1rem auto;}
-      @keyframes spin{to{transform:rotate(360deg)}}
-    </style></head><body>
-    <h2>✦ Connecting to Twitch... ✦</h2>
-    <div class="spinner"></div>
-    <p>Registering events, please wait!</p>
+    await getAppToken();
+    await getBroadcasterId(username);
+    await deleteOldSubscriptions();
+    await subscribeToEvents(callbackUrl);
+
+    console.log('Setup complete! Redirecting...');
+    res.redirect('/');
+  } catch(e) {
+    console.error('Setup error:', e.message);
+    res.status(500).send(`<html><body style="background:#0d0618;color:#fff;font-family:sans-serif;text-align:center;padding:3rem;">
+      <h2 style="color:#FF6EB4">❌ Error connecting</h2>
+      <p>${e.message}</p>
+      <a href="/" style="color:#C084FC">← Try again</a>
     </body></html>`);
-
-  await getAppToken();
-  await getBroadcasterId(username);
-  await deleteOldSubscriptions();
-  await subscribeToEvents(callbackUrl);
-
-  res.end(`<script>window.location='/'</script>`);
+  }
 });
 
 // ── EVENTSUB WEBHOOK ──

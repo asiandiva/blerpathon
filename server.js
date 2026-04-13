@@ -150,6 +150,11 @@ app.use(express.urlencoded({ extended: true }));
 // ── SERVE WIDGET ──
 app.use(express.static('public'));
 
+// Explicit widget route
+app.get('/widget', (req, res) => {
+  res.sendFile('widget.html', { root: 'public' });
+});
+
 // ── SETUP PAGE ──
 app.get('/', (req, res) => {
   res.send(`

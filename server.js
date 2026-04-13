@@ -119,7 +119,7 @@ async function subscribeToEvents(callbackUrl) {
       }, {
         headers: {
           'Client-ID': CLIENT_ID,
-          'Authorization': `Bearer ${userAccessToken || appAccessToken}`,
+          'Authorization': `Bearer ${appAccessToken}`,
           'Content-Type': 'application/json'
         }
       });
@@ -229,15 +229,18 @@ app.get('/auth/callback', async (req, res) => {
     });
     userAccessToken = tokenRes.data.access_token;
 
-    // Get broadcaster info
+    // Get broadcaster info using user token
     const userRes = await axios.get('https://api.twitch.tv/helix/users', {
       headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${userAccessToken}` }
     });
     broadcasterId   = userRes.data.data[0].id;
     broadcasterName = userRes.data.data[0].display_name;
-    console.log(`✅ OAuth authorized for ${broadcasterName}`);
+    console.log(`✅ OAuth authorized for ${broadcasterName} (ID: ${broadcasterId})`);
 
-    // Subscribe to events
+    // Get app token for EventSub subscriptions
+    await getAppToken();
+
+    // Subscribe to events using app token
     const callbackUrl = `https://${req.get('host')}`;
     await deleteOldSubscriptions();
     await subscribeToEvents(callbackUrl);

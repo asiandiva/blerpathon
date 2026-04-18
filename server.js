@@ -179,6 +179,11 @@ app.get('/modpanel', (req, res) => {
   res.sendFile('modpanel.html', { root: 'public' });
 });
 
+// Explicit purge overlay route
+app.get('/purge_overlay', (req, res) => {
+  res.sendFile('purge_overlay.html', { root: 'public' });
+});
+
 // ── SETUP PAGE ──
 app.get('/', (req, res) => {
   res.send(`

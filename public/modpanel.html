@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>✦ asiandiva__ Mod Panel ✦</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:#080312;
+  font-family:'Nunito',sans-serif;
+  width:100vw;height:100vh;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+.mp-header{
+  background:linear-gradient(135deg,rgba(224,67,138,0.15),rgba(192,132,252,0.1));
+  border-bottom:1px solid rgba(255,110,180,0.2);
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.mp-title{font-family:'Fredoka One',cursive;font-size:1.1rem;color:#FF6EB4;}
+.mp-status{font-size:9px;font-weight:800;letter-spacing:0.15em;color:rgba(255,255,255,0.3);text-transform:uppercase;}
+.mp-status.connected{color:#10B981;}
+
+/* ── SCROLL AREA ── */
+.mp-scroll{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+.mp-scroll::-webkit-scrollbar{width:3px;}
+.mp-scroll::-webkit-scrollbar-thumb{background:rgba(255,110,180,0.3);border-radius:999px;}
+
+/* ── SECTION ── */
+.mp-section{display:flex;flex-direction:column;gap:6px;}
+.mp-section-title{font-size:8px;font-weight:800;letter-spacing:0.2em;color:rgba(255,255,255,0.25);text-transform:uppercase;}
+
+/* ── TIMER DISPLAY ── */
+.timer-display{
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:10px;text-align:center;
+}
+.timer-big{font-family:'Fredoka One',cursive;font-size:2.2rem;color:#fff;letter-spacing:0.05em;}
+.timer-sub{font-size:9px;font-weight:800;color:rgba(255,255,255,0.3);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:8px;}
+.mp-btn{
+  flex:1;padding:10px 8px;border:none;border-radius:12px;
+  font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.03em;text-align:center;
+}
+.mp-btn:active{transform:scale(0.95);}
+.btn-start{background:linear-gradient(135deg,#E0438A,#C084FC);color:#fff;box-shadow:0 3px 12px rgba(224,67,138,0.4);}
+.btn-start:hover{box-shadow:0 5px 18px rgba(224,67,138,0.6);}
+.btn-purge{background:rgba(251,191,36,0.12);border:1.5px solid rgba(251,191,36,0.3);color:rgba(251,191,36,0.8);}
+.btn-purge.on{background:rgba(251,191,36,0.25);border-color:rgba(251,191,36,0.6);color:#FBB24F;box-shadow:0 0 12px rgba(251,191,36,0.3);}
+.btn-reset{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);}
+.btn-reset:hover{border-color:rgba(255,255,255,0.25);color:#fff;}
+
+/* Time controls */
+.time-row{display:flex;gap:6px;}
+.time-btn{
+  flex:1;padding:7px 4px;border:none;border-radius:10px;
+  font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;
+  cursor:pointer;transition:all 0.15s;
+}
+.time-btn:active{transform:scale(0.95);}
+.time-add{background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.3);color:#34D399;}
+.time-rem{background:rgba(239,68,68,0.12);border:1.5px solid rgba(239,68,68,0.25);color:#F87171;}
+.time-btn:hover{transform:scale(1.04);}
+
+/* Divider */
+.divider{height:1px;background:rgba(255,255,255,0.05);border-radius:999px;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.stat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:7px 8px;text-align:center;}
+.stat-label{font-size:7px;font-weight:800;letter-spacing:0.1em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:2px;}
+.stat-val{font-size:0.95rem;font-weight:900;font-family:'Nunito',sans-serif;}
+
+/* Earnings */
+.earn-grid{display:flex;gap:6px;}
+.earn-card{flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:7px 8px;text-align:center;}
+.earn-card.total{background:rgba(255,110,180,0.06);border-color:rgba(255,110,180,0.15);}
+.earn-label{font-size:7px;font-weight:800;letter-spacing:0.1em;color:rgba(255,255,255,0.25);text-transform:uppercase;margin-bottom:2px;}
+.earn-val{font-size:0.95rem;font-weight:900;font-family:'Nunito',sans-serif;}
+
+/* Goals list */
+.goals-list{display:flex;flex-direction:column;gap:4px;height:100px;overflow-y:auto;padding-right:4px;}
+.goals-list::-webkit-scrollbar{width:3px;}
+.goals-list::-webkit-scrollbar-thumb{background:rgba(16,185,129,0.3);border-radius:999px;}
+.goal-item{display:flex;align-items:center;gap:8px;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.15);border-radius:10px;padding:5px 8px;flex-shrink:0;}
+.goal-ec{background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);}
+.goal-empty{font-size:10px;color:rgba(255,255,255,0.2);font-weight:700;text-align:center;padding:16px 0;}
+
+/* Activity feed */
+.feed-list{display:flex;flex-direction:column;gap:5px;flex:1;overflow-y:auto;padding-right:4px;}
+.feed-list::-webkit-scrollbar{width:3px;}
+.feed-list::-webkit-scrollbar-thumb{background:rgba(255,110,180,0.3);border-radius:999px;}
+.feed-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:7px 10px;flex-shrink:0;}
+.feed-icon{font-size:0.9rem;flex-shrink:0;}
+.feed-info{flex:1;}
+.feed-name{font-size:11px;font-weight:800;color:#fff;display:block;}
+.feed-detail{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);display:block;}
+.feed-time{font-size:9px;font-weight:700;flex-shrink:0;}
+.feed-empty{font-size:11px;color:rgba(255,255,255,0.2);text-align:center;padding:16px 0;font-weight:700;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="mp-header">
+  <span class="mp-title">🔒 asiandiva__ Mod Panel</span>
+  <span class="mp-status" id="mpStatus">Connecting...</span>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="mp-scroll">
+
+  <!-- Timer Display -->
+  <div class="mp-section">
+    <div class="mp-section-title">⏱ Timer</div>
+    <div class="timer-display">
+      <div class="timer-big" id="mpTimerBig">--:--:--</div>
+      <div class="timer-sub" id="mpTimerSub">Waiting for widget...</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="mp-section">
+    <div class="mp-section-title">🎮 Controls</div>
+    <div class="btn-row">
+      <button class="mp-btn btn-start" id="mpStartBtn" onclick="sendCmd('start')">▶ Start</button>
+      <button class="mp-btn btn-purge" id="mpPurgeBtn" onclick="togglePurgeCmd()">⚡ Purge: OFF</button>
+      <button class="mp-btn btn-reset" onclick="sendCmd('reset')">↺ Reset</button>
+    </div>
+    <div class="time-row">
+      <button class="time-btn time-add" onclick="sendCmd('addtime',{mins:5})">+5m</button>
+      <button class="time-btn time-add" onclick="sendCmd('addtime',{mins:10})">+10m</button>
+      <button class="time-btn time-add" onclick="sendCmd('addtime',{mins:20})">+20m</button>
+      <button class="time-btn time-rem" onclick="sendCmd('removetime',{mins:5})">-5m</button>
+      <button class="time-btn time-rem" onclick="sendCmd('removetime',{mins:10})">-10m</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Stream Stats -->
+  <div class="mp-section">
+    <div class="mp-section-title">📊 Stream Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Time Donated</div>
+        <div class="stat-val" id="mpDonated" style="color:#FF6EB4;">0h 0m</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Live For</div>
+        <div class="stat-val" id="mpLiveFor" style="color:#C084FC;">0h 0m</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donation Counts -->
+  <div class="mp-section">
+    <div class="mp-section-title">🎯 Donation Counts</div>
+    <div class="earn-grid">
+      <div class="earn-card">
+        <div class="earn-label">Subs</div>
+        <div class="earn-val" id="mpCountSubs" style="color:#FF6EB4;">0</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-label">Bit Donors</div>
+        <div class="earn-val" id="mpCountBits" style="color:#FBB24F;">0</div>
+      </div>
+      <div class="earn-card total">
+        <div class="earn-label">Total</div>
+        <div class="earn-val" id="mpCountTotal" style="color:#fff;">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Earnings -->
+  <div class="mp-section">
+    <div class="mp-section-title">💰 My Earnings</div>
+    <div class="earn-grid">
+      <div class="earn-card">
+        <div class="earn-label">Subs</div>
+        <div class="earn-val" id="mpEarnSubs" style="color:#FF6EB4;">$0.00</div>
+      </div>
+      <div class="earn-card">
+        <div class="earn-label">Bits</div>
+        <div class="earn-val" id="mpEarnBits" style="color:#FBB24F;">$0.00</div>
+      </div>
+      <div class="earn-card total">
+        <div class="earn-label">Total</div>
+        <div class="earn-val" id="mpEarnTotal" style="color:#fff;">$0.00</div>
+      </div>
+    </div>
+    <div style="font-size:7px;color:rgba(255,255,255,0.15);text-align:center;margin-top:4px;font-weight:700;">T1=$2.50 · T2=$5.00 · T3=$12.50 · Bits=$0.01</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Completed Goals -->
+  <div class="mp-section">
+    <div class="mp-section-title">✅ Completed Goals</div>
+    <div class="goals-list" id="mpGoalsList">
+      <div class="goal-empty">No goals completed yet!</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Activity Feed -->
+  <div class="mp-section" style="flex:1;min-height:120px;display:flex;flex-direction:column;">
+    <div class="mp-section-title">📋 Activity Feed</div>
+    <div class="feed-list" id="mpFeed">
+      <div class="feed-empty">No activity yet!</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WS_URL = location.host 
+  ? (location.protocol==='https:'?'wss://':'ws://') + location.host
+  : 'wss://blerpathon.onrender.com';
+let socket = null;
+let purgeOn = false;
+let streamStartTime = null;
+let liveTimer = null;
+let earnings = { subs:0, bits:0 };
+let counts   = { subs:0, bits:0 };
+let feed     = [];
+
+const GOALS = [
+  { hours:2,  emoji:'🎮', label:'Bubble Gets Switch Fixed!' },
+  { hours:4,  emoji:'▶️', label:'Play YouTube Playable' },
+  { hours:6,  emoji:'🔍', label:'Hide and Seek' },
+  { hours:8,  emoji:'🍽️', label:'Feed The Mods' },
+  { hours:10, emoji:'😂', label:'Do Not Reaction Videos' },
+  { hours:12, emoji:'🤫', label:"It's Your Secret Sauce" },
+  { hours:14, emoji:'⏪', label:'Rewind Time' },
+  { hours:16, emoji:'🎬', label:'Blooper Reel' },
+  { hours:18, emoji:'✨', label:'Vibe Rater' },
+  { hours:20, emoji:'🔥', label:'Hot Take' },
+  { hours:22, emoji:'😊', label:'Extremely Amenable' },
+  { hours:24, emoji:'🏅', label:'24 Hour Challenge' },
+  { hours:26, emoji:'💡', label:"I'm The Advice Girl" },
+  { hours:28, emoji:'👀', label:"Who's That Girl?" },
+  { hours:30, emoji:'👟', label:'I Tie My Own Shoes' },
+  { hours:32, emoji:'🏈', label:'I Know Sports' },
+  { hours:34, emoji:'⚖️', label:'Hostile Witness' },
+  { hours:36, emoji:'😅', label:"I'm Sorry?" },
+  { hours:38, emoji:'💼', label:"I'm Sponsored!" },
+  { hours:40, emoji:'🦆', label:'The Duckly News' },
+  { hours:42, emoji:'🧠', label:'Do You Remember?' },
+  { hours:44, emoji:'🌙', label:'Blerp Recreation' },
+  { hours:46, emoji:'😴', label:'Time To Wind Down' },
+  { hours:48, emoji:'👸', label:'Miss Congeniality' },
+];
+
+// ── WEBSOCKET ──
+function connect() {
+  socket = new WebSocket(WS_URL);
+
+  socket.onopen = () => {
+    document.getElementById('mpStatus').textContent = '● Connected';
+    document.getElementById('mpStatus').classList.add('connected');
+  };
+
+  socket.onclose = () => {
+    document.getElementById('mpStatus').textContent = 'Reconnecting...';
+    document.getElementById('mpStatus').classList.remove('connected');
+    setTimeout(connect, 3000);
+  };
+
+  socket.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+
+      // Widget state update
+      if (d.type === 'state') {
+        updateTimerDisplay(d);
+        updateGoals(d.totalAdded);
+        updatePurgeBtn(d.purge);
+        if (d.running && !streamStartTime) {
+          streamStartTime = Date.now();
+          startLiveTimer();
+        }
+        if (!d.running && d.elapsed === 0) {
+          // Reset
+          streamStartTime = null;
+          clearInterval(liveTimer);
+          document.getElementById('mpLiveFor').textContent = '0h 0m';
+          earnings = { subs:0, bits:0 };
+          counts   = { subs:0, bits:0 };
+          feed     = [];
+          renderEarnings();
+          renderCounts();
+          renderFeed();
+        }
+        return;
+      }
+
+      // Twitch events — log to feed + update earnings
+      let name=d.name||'Anonymous', icon='', detail='', color='#FF6EB4';
+
+      if (d.type==='sub') {
+        const tn=(d.tier||'1000').charAt(0);
+        icon='🌟'; color='#FF6EB4';
+        detail=`T${tn} Sub → +${(tn==='1'?5:tn==='2'?10:20)*(purgeOn?2:1)} min`;
+        counts.subs++;
+        earnings.subs += tn==='1'?2.50:tn==='2'?5.00:12.50;
+        renderEarnings(); renderCounts();
+      }
+      if (d.type==='giftsub') {
+        const tn=(d.tier||'1000').charAt(0), amt=parseInt(d.amount)||1;
+        icon='🎁'; color='#C084FC';
+        detail=`${amt} Gift Sub${amt>1?'s':''} → +${(tn==='1'?5:tn==='2'?10:20)*amt*(purgeOn?2:1)} min`;
+        counts.subs += amt;
+        earnings.subs += (tn==='1'?2.50:tn==='2'?5.00:12.50)*amt;
+        renderEarnings(); renderCounts();
+      }
+      if (d.type==='cheer') {
+        const bits=parseInt(d.bits)||0;
+        if(bits<100) return;
+        icon='⚡'; color='#FBB24F';
+        detail=`${bits.toLocaleString()} Bits → +${Math.floor(bits/100)*(purgeOn?2:1)} min`;
+        counts.bits++;
+        earnings.bits += bits*0.01;
+        renderEarnings(); renderCounts();
+      }
+
+      if(icon) addFeedItem(icon, name, detail, color);
+
+    } catch(err){ console.warn(err); }
+  };
+}
+
+// ── SEND COMMANDS ──
+function sendCmd(action, extra) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(JSON.stringify({ type:'cmd', action, ...extra }));
+}
+
+function togglePurgeCmd() {
+  sendCmd(purgeOn ? 'purge_off' : 'purge_on');
+}
+
+function updatePurgeBtn(on) {
+  purgeOn = !!on;
+  const btn = document.getElementById('mpPurgeBtn');
+  btn.textContent = purgeOn ? '⚡ Purge: ON' : '⚡ Purge: OFF';
+  btn.classList.toggle('on', purgeOn);
+}
+
+// ── TIMER DISPLAY ──
+function updateTimerDisplay(d) {
+  const rem = d.remaining || 0;
+  const h = Math.floor(rem/3600);
+  const m = Math.floor((rem%3600)/60);
+  const s = rem%60;
+  document.getElementById('mpTimerBig').textContent =
+    `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  const tot = d.totalAdded||0;
+  const dH=Math.floor(tot/3600), dM=Math.floor((tot%3600)/60);
+  document.getElementById('mpDonated').textContent = dH>0?`${dH}h ${dM}m`:`${dM}m`;
+
+  const startBtn = document.getElementById('mpStartBtn');
+  startBtn.textContent = d.running ? '⏸ Pause' : '▶ Start';
+
+  document.getElementById('mpTimerSub').textContent = d.running ? '● Live' : '⏸ Paused';
+}
+
+// ── LIVE TIMER ──
+function startLiveTimer() {
+  clearInterval(liveTimer);
+  liveTimer = setInterval(() => {
+    if (!streamStartTime) return;
+    const elapsed = Math.floor((Date.now()-streamStartTime)/1000);
+    const lH=Math.floor(elapsed/3600), lM=Math.floor((elapsed%3600)/60), lS=elapsed%60;
+    document.getElementById('mpLiveFor').textContent =
+      lH>0?`${lH}h ${lM}m`:`${lM}m ${String(lS).padStart(2,'0')}s`;
+  }, 1000);
+}
+
+// ── GOALS ──
+function updateGoals(totalAdded) {
+  const list = document.getElementById('mpGoalsList');
+  const completed = GOALS.filter(g => totalAdded >= g.hours*3600);
+  const allDone = completed.length === GOALS.length;
+  if (completed.length===0) {
+    list.innerHTML='<div class="goal-empty">No goals completed yet!</div>';
+    return;
+  }
+  list.innerHTML = [...completed].reverse().map(g=>`
+    <div class="goal-item">
+      <span style="font-size:0.9rem;">${g.emoji}</span>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);flex:1;">${g.label}</span>
+      <span style="font-size:9px;font-weight:800;color:rgba(16,185,129,0.8);">${g.hours}h ✓</span>
+    </div>
+  `).join('') + (allDone?`
+    <div class="goal-item goal-ec">
+      <span style="font-size:0.9rem;">⭐</span>
+      <span style="font-size:10px;font-weight:800;color:#FBB24F;flex:1;">Blerp Recreation</span>
+      <span style="font-size:9px;font-weight:800;color:#FBB24F;">EC ✓</span>
+    </div>`:'');
+}
+
+// ── EARNINGS ──
+function renderEarnings() {
+  document.getElementById('mpEarnSubs').textContent  = '$'+earnings.subs.toFixed(2);
+  document.getElementById('mpEarnBits').textContent  = '$'+earnings.bits.toFixed(2);
+  document.getElementById('mpEarnTotal').textContent = '$'+(earnings.subs+earnings.bits).toFixed(2);
+}
+
+function renderCounts() {
+  document.getElementById('mpCountSubs').textContent  = counts.subs;
+  document.getElementById('mpCountBits').textContent  = counts.bits;
+  document.getElementById('mpCountTotal').textContent = counts.subs+counts.bits;
+}
+
+// ── FEED ──
+function addFeedItem(icon, name, detail, color) {
+  const now = new Date();
+  const time = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  feed.unshift({icon,name,detail,color,time});
+  if(feed.length>50) feed.pop();
+  renderFeed();
+}
+
+function renderFeed() {
+  const el = document.getElementById('mpFeed');
+  if(feed.length===0){ el.innerHTML='<div class="feed-empty">No activity yet!</div>'; return; }
+  el.innerHTML = feed.map(f=>`
+    <div class="feed-item">
+      <span class="feed-icon">${f.icon}</span>
+      <div class="feed-info">
+        <span class="feed-name">${f.name}</span>
+        <span class="feed-detail">${f.detail}</span>
+      </div>
+      <span class="feed-time" style="color:${f.color}">${f.time}</span>
+    </div>
+  `).join('');
+}
+
+// ── INIT ──
+connect();
+</script>
+</body>
+</html>

@@ -943,26 +943,13 @@ function resetTimer() {
   lastReachedCount = 0;
   closePauseActive = false;
   celebratingGoal = false;
-  earnings = { subs: 0, bits: 0, total: 0 };
-  spEvents.length = 0;
   // Update start button if visible
-  const startBtn = document.getElementById('start-btn');
-  if (startBtn) startBtn.textContent = '▶ Start Timer';
+  setStartBtnText('▶ Start Timer');
   document.getElementById('log-box').innerHTML = '<div class="log-track" id="log-track"><span class="log-empty">✦ The Blerp-A-thon is live! Add time with subs & bits! ✨</span><span class="log-empty">✦ The Blerp-A-thon is live! Add time with subs & bits! ✨</span></div>';
   saveState();
   renderGoals();
   render();
-  if(typeof updateSpStartBtn==="function") updateSpStartBtn();
-  streamStartTime = null;
-  clearInterval(liveTimerInterval);
-  counts = { subs: 0, gifts: 0, bits: 0 };
-  updateCounts();
-  const donEl = document.getElementById('sp-total-donated');
-  const liveEl = document.getElementById('sp-live-time');
-  if(donEl) donEl.textContent = '0h 0m';
-  if(liveEl) liveEl.textContent = '0h 0m';
-  if(typeof updateSpPurgeBtn==="function") updateSpPurgeBtn();
-  if(typeof renderSpFeed==="function") renderSpFeed();
+  if(window._wsBroadcast) window._wsBroadcast();
   if(typeof renderEarnings==="function") renderEarnings();
   if(typeof renderSpGoals==='function') renderSpGoals();
   if(typeof addSpEvent==='function') addSpEvent('↺', 'Timer Reset', 'Everything cleared', '#F87171');

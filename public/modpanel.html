@@ -131,7 +131,7 @@ body{
   <div class="mp-section">
     <div class="mp-section-title">🎮 Controls</div>
     <div class="btn-row">
-      <button class="mp-btn btn-start" id="mpStartBtn" onclick="sendCmd('start')">▶ Start</button>
+      <button class="mp-btn btn-start" id="mpStartBtn" onclick="toggleStartPause()">▶ Start</button>
       <button class="mp-btn btn-purge" id="mpPurgeBtn" onclick="togglePurgeCmd()">⚡ Purge: OFF</button>
       <button class="mp-btn btn-reset" onclick="sendCmd('reset')">↺ Reset</button>
     </div>
@@ -340,6 +340,16 @@ function connect() {
 }
 
 // ── SEND COMMANDS ──
+let isRunning = false;
+
+function toggleStartPause() {
+  if (isRunning) {
+    sendCmd('pause');
+  } else {
+    sendCmd('start');
+  }
+}
+
 function sendCmd(action, extra) {
   if (!socket || socket.readyState !== WebSocket.OPEN) return;
   socket.send(JSON.stringify({ type:'cmd', action, ...extra }));
@@ -369,6 +379,7 @@ function updateTimerDisplay(d) {
   const dH=Math.floor(tot/3600), dM=Math.floor((tot%3600)/60);
   document.getElementById('mpDonated').textContent = dH>0?`${dH}h ${dM}m`:`${dM}m`;
 
+  isRunning = !!d.running;
   const startBtn = document.getElementById('mpStartBtn');
   startBtn.textContent = d.running ? '⏸ Pause' : '▶ Start';
 

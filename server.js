@@ -155,6 +155,11 @@ app.get('/widget', (req, res) => {
   res.sendFile('widget.html', { root: 'public' });
 });
 
+// Explicit modpanel route
+app.get('/modpanel', (req, res) => {
+  res.sendFile('modpanel.html', { root: 'public' });
+});
+
 // ── SETUP PAGE ──
 app.get('/', (req, res) => {
   res.send(`

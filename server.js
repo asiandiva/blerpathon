@@ -22,9 +22,28 @@ const clients = new Set();
 
 wss.on('connection', ws => {
   clients.add(ws);
-  console.log('Widget connected! Total clients:', clients.size);
+  console.log('Client connected! Total clients:', clients.size);
   ws.send(JSON.stringify({ type: 'connected', message: 'Twitch EventSub connected!' }));
-  ws.on('close', () => { clients.delete(ws); });
+
+  // Forward cmd and state messages to all other connected clients
+  ws.on('message', (msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      if (data.type === 'cmd' || data.type === 'state') {
+        console.log('Forwarding message type:', data.type, 'action:', data.action || '');
+        clients.forEach(client => {
+          if (client !== ws && client.readyState === 1) {
+            client.send(msg.toString());
+          }
+        });
+      }
+    } catch(e) { console.warn('Message parse error:', e.message); }
+  });
+
+  ws.on('close', () => {
+    clients.delete(ws);
+    console.log('Client disconnected! Total clients:', clients.size);
+  });
 });
 
 function broadcast(data) {

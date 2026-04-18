@@ -902,15 +902,20 @@ function checkGoalUnlocks() {
 }
 
 // ── TIMER CONTROLS ──
+function setStartBtnText(txt) {
+  const btn = document.getElementById('start-btn');
+  if (btn) btn.textContent = txt;
+}
+
 function toggleTimer() {
   if (state.running) {
     clearInterval(ticker);
     state.running = false;
-    document.getElementById('start-btn').textContent = '▶ Resume Timer';
+    setStartBtnText('▶ Resume Timer');
   } else {
     if (state.remaining <= 0) return;
     state.running = true;
-    document.getElementById('start-btn').textContent = '⏸ Pause Timer';
+    setStartBtnText('⏸ Pause Timer');
     ticker = setInterval(() => {
       if (state.remaining > 0) {
         state.remaining--;
@@ -921,7 +926,7 @@ function toggleTimer() {
       } else {
         clearInterval(ticker);
         state.running = false;
-        document.getElementById('start-btn').textContent = '▶ Start Timer';
+        setStartBtnText('▶ Start Timer');
         saveState();
         render();
       }
@@ -1422,34 +1427,36 @@ render();
       ws.onmessage = (e) => {
         try {
           const d = JSON.parse(e.data);
+          console.log('Widget received:', d.type, d.action||'');
           if (d.type !== 'cmd') return;
 
           const MAX = 48 * 3600;
 
-          if (d.action === 'start' && !state.running)  toggleTimer();
-          if (d.action === 'pause' && state.running)   toggleTimer();
-          if (d.action === 'reset')                    resetTimer();
-          if (d.action === 'purge_on'  && !state.purge) togglePurge();
-          if (d.action === 'purge_off' &&  state.purge) togglePurge();
-
-          if (d.action === 'addtime') {
+          if (d.action === 'start') {
+            if (!state.running) toggleTimer();
+          } else if (d.action === 'pause') {
+            if (state.running) toggleTimer();
+          } else if (d.action === 'reset') {
+            resetTimer();
+          } else if (d.action === 'purge_on') {
+            if (!state.purge) togglePurge();
+          } else if (d.action === 'purge_off') {
+            if (state.purge) togglePurge();
+          } else if (d.action === 'addtime') {
             const secs = parseInt(d.mins||0) * 60;
             const boosted = state.purge ? secs * 2 : secs;
             const canAdd = Math.min(boosted, MAX - state.totalAdded);
             state.remaining  = Math.min(state.remaining  + canAdd, MAX);
             state.totalAdded = Math.min(state.totalAdded + canAdd, MAX);
             saveState(); render(); renderGoals(); checkGoalUnlocks();
-          }
-
-          if (d.action === 'removetime') {
+          } else if (d.action === 'removetime') {
             const secs = parseInt(d.mins||0) * 60;
             state.remaining  = Math.max(state.remaining  - secs, 0);
             state.totalAdded = Math.max(state.totalAdded - secs, 0);
             saveState(); render(); renderGoals();
           }
 
-          // Broadcast state back to mod panel
-          broadcastState();
+          if(window._wsBroadcast) window._wsBroadcast();
 
         } catch(err) { console.warn('WS cmd error:', err); }
       };

@@ -1417,5 +1417,79 @@ render();
 -->
 
 
+<script>
+// ══ WIDGET WEBSOCKET — connects to server for mod panel commands ══
+(function() {
+  const WS_URL = (location.protocol==='https:'?'wss://':'ws://') + location.host;
+  let ws = null;
+
+  function connectWS() {
+    try {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => console.log('✅ Widget WS connected');
+
+      ws.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          if (d.type !== 'cmd') return;
+
+          const MAX = 48 * 3600;
+
+          if (d.action === 'start' && !state.running)  toggleTimer();
+          if (d.action === 'pause' && state.running)   toggleTimer();
+          if (d.action === 'reset')                    resetTimer();
+          if (d.action === 'purge_on'  && !state.purge) togglePurge();
+          if (d.action === 'purge_off' &&  state.purge) togglePurge();
+
+          if (d.action === 'addtime') {
+            const secs = parseInt(d.mins||0) * 60;
+            const boosted = state.purge ? secs * 2 : secs;
+            const canAdd = Math.min(boosted, MAX - state.totalAdded);
+            state.remaining  = Math.min(state.remaining  + canAdd, MAX);
+            state.totalAdded = Math.min(state.totalAdded + canAdd, MAX);
+            saveState(); render(); renderGoals(); checkGoalUnlocks();
+          }
+
+          if (d.action === 'removetime') {
+            const secs = parseInt(d.mins||0) * 60;
+            state.remaining  = Math.max(state.remaining  - secs, 0);
+            state.totalAdded = Math.max(state.totalAdded - secs, 0);
+            saveState(); render(); renderGoals();
+          }
+
+          // Broadcast state back to mod panel
+          broadcastState();
+
+        } catch(err) { console.warn('WS cmd error:', err); }
+      };
+
+      ws.onclose = () => setTimeout(connectWS, 3000);
+      ws.onerror = () => ws.close();
+
+    } catch(e) { setTimeout(connectWS, 3000); }
+  }
+
+  // Broadcast state to mod panel via WebSocket
+  window.broadcastState = function() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type:      'state',
+        remaining: state.remaining,
+        totalAdded:state.totalAdded,
+        elapsed:   state.elapsed,
+        running:   state.running,
+        purge:     state.purge,
+      }));
+    }
+  };
+
+  connectWS();
+
+  // Broadcast state every 2 seconds so mod panel stays in sync
+  setInterval(() => { if(typeof broadcastState==='function') broadcastState(); }, 2000);
+})();
+</script>
+
 </body>
 </html>

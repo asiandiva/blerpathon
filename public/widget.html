@@ -698,18 +698,8 @@ function fmtHM(s) { return `${Math.floor(s/3600)}h ${pad(Math.floor((s%3600)/60)
 
 // ── RENDER ──
 function broadcastState() {
-  if (socket && socket.readyState === WebSocket.OPEN) {
-    socket.send(JSON.stringify({
-      type: 'state',
-      remaining: state.remaining,
-      totalAdded: state.totalAdded,
-      elapsed: state.elapsed,
-      running: state.running,
-      purge: state.purge,
-      goalsCompleted: GOALS.filter(g => state.totalAdded >= g.hours * 3600).length,
-      totalGoals: GOALS.length
-    }));
-  }
+  // Will be overridden by WebSocket script below
+  if (window._wsBroadcast) window._wsBroadcast();
 }
 
 function render() {
@@ -1471,7 +1461,7 @@ render();
   }
 
   // Broadcast state to mod panel via WebSocket
-  window.broadcastState = function() {
+  window._wsBroadcast = function() {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({
         type:      'state',

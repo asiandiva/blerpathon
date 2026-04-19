@@ -379,9 +379,10 @@ app.post('/webhook', (req, res) => {
 
     // ── BITS / CHEER ──
     if (type === 'channel.cheer') {
+      console.log(`⚡ Cheer received! Bits: ${event.bits}, User: ${event.user_name || 'Anonymous'}, Is Anonymous: ${event.is_anonymous}`);
       broadcast({
         type: 'cheer',
-        name: event.user_name,
+        name: event.is_anonymous ? 'Anonymous' : (event.user_name || 'Anonymous'),
         bits: event.bits
       });
     }

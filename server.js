@@ -184,6 +184,11 @@ app.get('/purge_overlay', (req, res) => {
   res.sendFile('purge_overlay.html', { root: 'public' });
 });
 
+// Explicit donor wall route
+app.get('/donor_wall', (req, res) => {
+  res.sendFile('donor_wall.html', { root: 'public' });
+});
+
 // ── SETUP PAGE ──
 app.get('/', (req, res) => {
   res.send(`

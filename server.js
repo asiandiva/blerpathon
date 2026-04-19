@@ -25,18 +25,16 @@ wss.on('connection', ws => {
   console.log('Client connected! Total clients:', clients.size);
   ws.send(JSON.stringify({ type: 'connected', message: 'Twitch EventSub connected!' }));
 
-  // Forward cmd and state messages to all other connected clients
+  // Forward all messages to all other connected clients
   ws.on('message', (msg) => {
     try {
       const data = JSON.parse(msg.toString());
-      if (data.type === 'cmd' || data.type === 'state') {
-        console.log('Forwarding message type:', data.type, 'action:', data.action || '');
-        clients.forEach(client => {
-          if (client !== ws && client.readyState === 1) {
-            client.send(msg.toString());
-          }
-        });
-      }
+      console.log('Forwarding message type:', data.type, 'action:', data.action || '');
+      clients.forEach(client => {
+        if (client !== ws && client.readyState === 1) {
+          client.send(msg.toString());
+        }
+      });
     } catch(e) { console.warn('Message parse error:', e.message); }
   });
 

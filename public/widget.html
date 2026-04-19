@@ -1415,6 +1415,33 @@ render();
         try {
           const d = JSON.parse(e.data);
           console.log('Widget received:', d.type, d.action||'');
+
+          // ── TWITCH EVENTS FROM SERVER ──
+          if (d.type === 'sub') {
+            const tier = d.tier || '1000';
+            let minsEach = CONFIG.sub1;
+            if (tier === '2000') minsEach = CONFIG.sub2;
+            if (tier === '3000') minsEach = CONFIG.sub3;
+            addTime(minsEach * 60, `T${tier.charAt(0)} Sub`, d.name || 'Anonymous');
+            return;
+          }
+          if (d.type === 'giftsub') {
+            const tier = d.tier || '1000';
+            let minsEach = CONFIG.sub1;
+            if (tier === '2000') minsEach = CONFIG.sub2;
+            if (tier === '3000') minsEach = CONFIG.sub3;
+            const amt = parseInt(d.amount) || 1;
+            addTime(minsEach * amt * 60, `${amt} Gift Sub${amt>1?'s':''}`, d.name || 'Anonymous');
+            return;
+          }
+          if (d.type === 'cheer') {
+            const bits = parseInt(d.bits) || 0;
+            if (bits < 100) return;
+            const mins = Math.floor(bits / 100) * CONFIG.bits100;
+            addTime(mins * 60, `${bits.toLocaleString()} Bits`, d.name || 'Anonymous');
+            return;
+          }
+
           if (d.type !== 'cmd') return;
 
           const MAX = 48 * 3600;

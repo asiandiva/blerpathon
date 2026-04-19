@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>asiandiva__ Blerp-A-Thon Champions</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: transparent;
+  font-family: 'Nunito', sans-serif;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+  padding: 30px;
+}
+
+/* ══ BOARD ══ */
+.board {
+  width: 100%; height: 100%;
+  background: rgba(16, 8, 28, 0.92);
+  border: 1.5px solid rgba(255,110,180,0.25);
+  border-radius: 20px;
+  padding: 1rem 1rem 0.75rem;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.board::before {
+  content:''; position:absolute; inset:0; border-radius:20px;
+  background-image: radial-gradient(circle, rgba(255,110,180,0.05) 1px, transparent 1px);
+  background-size: 22px 22px; pointer-events:none;
+}
+.board-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:0.75rem; position:relative; z-index:1; flex-shrink:0;
+}
+.board-title { font-family:'Fredoka One',cursive; font-size:1.3rem; color:#fff; }
+.board-crown { font-size:9px; font-weight:800; letter-spacing:0.15em; color:rgba(251,191,36,0.8); text-transform:uppercase; display:block; }
+.board-count { font-size:11px; font-weight:800; color:rgba(255,255,255,0.35); background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:4px 12px; border-radius:999px; }
+.board-count span { color:#FF6EB4; }
+
+/* ══ NOTES AREA ══ */
+.notes-wrap {
+  flex:1; overflow:hidden; position:relative; z-index:1;
+}
+
+/* Static grid — shows first 50 notes */
+.notes-grid {
+  display:flex; flex-wrap:wrap; gap:6px;
+  align-content:flex-start;
+  width:100%; height:100%;
+  overflow:hidden;
+}
+
+/* Ticker — shows when notes > 50 */
+.notes-ticker {
+  display:none;
+  width:100%; height:100%;
+  flex-direction:column;
+  overflow:hidden;
+  position:relative;
+}
+.notes-ticker.active { display:flex; }
+.ticker-track {
+  display:flex; flex-wrap:wrap; gap:6px;
+  align-content:flex-start;
+  animation: tickerScroll 40s linear infinite;
+  will-change: transform;
+}
+.ticker-track:hover { animation-play-state:paused; }
+@keyframes tickerScroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.empty-msg { width:100%; text-align:center; padding:3rem 1rem; color:rgba(255,255,255,0.2); font-size:13px; font-weight:700; line-height:2; }
+.empty-msg span { font-size:2rem; display:block; margin-bottom:0.5rem; opacity:0.3; }
+
+/* ══ STICKY NOTE ══ */
+.sticky {
+  width: var(--sz, 90px); height: var(--sz, 90px);
+  border-radius: 3px 10px 10px 3px;
+  padding: 8px 7px 6px;
+  display: flex; flex-direction:column; gap:3px;
+  position:relative; flex-shrink:0; overflow:hidden;
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.4);
+  transform: var(--tilt, rotate(0deg));
+}
+.sticky.pop {
+  animation: popIn 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes popIn {
+  0%  { transform: scale(0) var(--tilt); opacity:0; }
+  70% { transform: scale(1.12) var(--tilt); opacity:1; }
+  100%{ transform: scale(1) var(--tilt); opacity:1; }
+}
+.sticky::before {
+  content:''; position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+  width:10px; height:10px; border-radius:50%;
+  box-shadow:0 2px 5px rgba(0,0,0,0.4); z-index:2;
+}
+.sticky::after {
+  content:''; position:absolute; bottom:0; right:0;
+  width:10px; height:10px; background:rgba(0,0,0,0.12);
+  clip-path:polygon(100% 0,100% 100%,0 100%); border-radius:0 0 10px 0;
+}
+.s-name { font-family:'Caveat',cursive; font-size:var(--fn,12px); font-weight:700; color:rgba(0,0,0,0.75); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.s-line { height:1px; background:rgba(0,0,0,0.12); border-radius:999px; flex-shrink:0; }
+.s-time { font-family:'Caveat',cursive; font-size:var(--ft,16px); font-weight:700; color:rgba(0,0,0,0.65); }
+.s-type { font-size:var(--ftp,7px); font-weight:800; color:rgba(0,0,0,0.45); letter-spacing:0.05em; text-transform:uppercase; margin-top:auto; overflow:hidden; white-space:nowrap; }
+
+/* ══ CONTROLS ══ */
+.ctrl-row { display:flex; gap:8px; margin-top:0.6rem; flex-shrink:0; position:relative; z-index:1; }
+.cbtn { padding:6px 14px; border-radius:10px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.04em; transition:all 0.15s; border:none; }
+.cbtn:active{transform:scale(0.96);}
+.cbtn-r { background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.13); color:rgba(255,255,255,0.5); }
+.cbtn-r:hover{background:rgba(255,255,255,0.12);color:#fff;}
+.cbtn-t { background:rgba(255,110,180,0.15); border:1.5px solid rgba(255,110,180,0.35); color:#FF6EB4; }
+.cbtn-t:hover{background:rgba(255,110,180,0.28);}
+
+/* ══ TAKEOVER ══ */
+.takeover {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(10, 4, 20, 0.97);
+  display: flex; flex-direction:column;
+  align-items: center; justify-content: center;
+  opacity: 0; pointer-events:none;
+  transition: opacity 0.4s ease;
+}
+.takeover.visible { opacity:1; pointer-events:all; }
+
+.big-sticky {
+  width: min(440px, 78vw); height: min(440px, 78vw);
+  border-radius: 10px 34px 34px 10px;
+  padding: 40px 32px 26px;
+  display: flex; flex-direction:column; gap:18px;
+  position:relative;
+  box-shadow: 0 32px 90px rgba(0,0,0,0.85), 0 0 0 2px rgba(255,255,255,0.15);
+  opacity:0;
+  animation: bigPop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards;
+}
+@keyframes bigPop {
+  0%  { transform: scale(0) rotate(-8deg); opacity:0; }
+  60% { transform: scale(1.06) rotate(1deg); opacity:1; }
+  100%{ transform: scale(1) rotate(-1deg); opacity:1; }
+}
+.big-sticky::before {
+  content:''; position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  width:34px; height:34px; border-radius:50%;
+  box-shadow:0 6px 18px rgba(0,0,0,0.5); z-index:2;
+}
+.big-sticky::after {
+  content:''; position:absolute; bottom:0; right:0;
+  width:26px; height:26px; background:rgba(0,0,0,0.1);
+  clip-path:polygon(100% 0,100% 100%,0 100%); border-radius:0 0 34px 0;
+}
+.big-name { font-family:'Fredoka One',cursive; font-size:clamp(1.8rem,7vw,3.4rem); color:rgba(0,0,0,0.85); line-height:1.1; }
+.big-line { height:2px; background:rgba(0,0,0,0.12); border-radius:999px; flex-shrink:0; }
+.big-time { font-family:'Caveat',cursive; font-size:clamp(3.2rem,12vw,6rem); font-weight:700; color:rgba(0,0,0,0.75); line-height:1; }
+.big-type { font-size:clamp(11px,2.5vw,19px); font-weight:800; color:rgba(0,0,0,0.5); letter-spacing:0.08em; text-transform:uppercase; margin-top:auto; }
+
+/* Note colours */
+.c1{background:#FDE68A;} .c2{background:#FBCFE8;} .c3{background:#C4B5FD;}
+.c4{background:#A7F3D0;} .c5{background:#BAE6FD;} .c6{background:#FCA5A5;}
+.c7{background:#FCD34D;} .c8{background:#D9F99D;}
+.c1::before,.big-sticky.c1::before{background:radial-gradient(circle at 35% 35%,#FEF3C7,#F59E0B);}
+.c2::before,.big-sticky.c2::before{background:radial-gradient(circle at 35% 35%,#FCE7F3,#EC4899);}
+.c3::before,.big-sticky.c3::before{background:radial-gradient(circle at 35% 35%,#EDE9FE,#7C3AED);}
+.c4::before,.big-sticky.c4::before{background:radial-gradient(circle at 35% 35%,#D1FAE5,#059669);}
+.c5::before,.big-sticky.c5::before{background:radial-gradient(circle at 35% 35%,#E0F2FE,#0284C7);}
+.c6::before,.big-sticky.c6::before{background:radial-gradient(circle at 35% 35%,#FEE2E2,#DC2626);}
+.c7::before,.big-sticky.c7::before{background:radial-gradient(circle at 35% 35%,#FEF9C3,#CA8A04);}
+.c8::before,.big-sticky.c8::before{background:radial-gradient(circle at 35% 35%,#F7FEE7,#65A30D);}
+
+.toast {
+  position:fixed; top:14px; left:50%;
+  transform:translateX(-50%) translateY(-70px);
+  background:linear-gradient(135deg,#E0438A,#C084FC);
+  color:#fff; padding:7px 18px; border-radius:999px;
+  font-family:'Nunito',sans-serif; font-size:11px; font-weight:800;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events:none; white-space:nowrap; z-index:9999;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- TAKEOVER -->
+<div class="takeover" id="takeover">
+  <div class="big-sticky c1" id="big-note">
+    <div class="big-name" id="big-name"></div>
+    <div class="big-line"></div>
+    <div class="big-time" id="big-time"></div>
+    <div class="big-type" id="big-type"></div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div class="board">
+  <div class="board-header">
+    <div>
+      <span class="board-crown">✦ blerp-a-thon ✦</span>
+      <span class="board-title">👑 Asiandiva's Blerp-A-Thon</span>
+    </div>
+    <span class="board-count"><span id="note-count">0</span> donors</span>
+  </div>
+  <div class="notes-wrap">
+    <!-- Static grid for <= 50 notes -->
+    <div class="notes-grid" id="notes-grid">
+      <div class="empty-msg" id="empty-msg">
+        <span>📌</span>Sticky notes appear here<br>when someone donates!
+      </div>
+    </div>
+    <!-- Ticker for > 50 notes -->
+    <div class="notes-ticker" id="notes-ticker">
+      <div class="ticker-track" id="ticker-track"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const COLORS = ['c1','c2','c3','c4','c5','c6','c7','c8'];
+const TILTS  = ['rotate(-3deg)','rotate(-2deg)','rotate(-1deg)','rotate(0deg)','rotate(1deg)','rotate(2deg)','rotate(3deg)'];
+const WS_URL = (location.protocol==='https:'?'wss://':'ws://') + (location.host || 'blerpathon.onrender.com');
+const TICKER_THRESHOLD = 50;
+
+let notes=[], colorIdx=0, queue=[], busy=false, socket=null;
+
+function save(){ try{ localStorage.setItem('diva_wall3', JSON.stringify({notes,colorIdx})); }catch(e){} }
+function load(){ try{ const s=localStorage.getItem('diva_wall3'); if(s){ const d=JSON.parse(s); notes=d.notes||[]; colorIdx=d.colorIdx||0; }}catch(e){} }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── QUEUE ──
+function enqueue(name, mins, type){
+  // Pick a random color that's different from the last one
+  let colorI;
+  do { colorI = Math.floor(Math.random()*COLORS.length); } while(notes.length > 0 && COLORS[colorI] === notes[notes.length-1]?.color);
+  const color = COLORS[colorI];
+  const tilt  = TILTS[Math.floor(Math.random()*TILTS.length)];
+  queue.push({name, mins, type, color, tilt, id:Date.now()+Math.random()});
+  if(!busy) nextInQueue();
+}
+
+function nextInQueue(){
+  if(!queue.length){ busy=false; return; }
+  busy=true;
+  celebrate(queue.shift());
+}
+
+// ── CELEBRATE — pop straight to board after brief takeover ──
+function celebrate(note){
+  const overlay = document.getElementById('takeover');
+  const bigNote = document.getElementById('big-note');
+
+  // Fill content
+  document.getElementById('big-name').textContent = note.name;
+  document.getElementById('big-time').textContent = `+${note.mins}m`;
+  document.getElementById('big-type').textContent = note.type;
+
+  // Set colour
+  bigNote.className = `big-sticky ${note.color}`;
+
+  // Reset animation
+  bigNote.style.animation = 'none';
+  void bigNote.offsetWidth;
+  bigNote.style.animation = '';
+
+  // Show overlay
+  overlay.classList.add('visible');
+
+  // After 2.5s — hide overlay and pop onto board instantly
+  setTimeout(()=>{
+    overlay.classList.remove('visible');
+    setTimeout(()=>{
+      notes.push(note);
+      save();
+      renderBoard(true);
+      updateCount();
+      setTimeout(nextInQueue, 300);
+    }, 400);
+  }, 2500);
+}
+
+// ── RENDER BOARD ──
+function renderBoard(animate){
+  const grid   = document.getElementById('notes-grid');
+  const ticker = document.getElementById('notes-ticker');
+  const track  = document.getElementById('ticker-track');
+
+  if(notes.length === 0){
+    grid.innerHTML = '<div class="empty-msg" id="empty-msg"><span>📌</span>Sticky notes appear here<br>when someone donates!</div>';
+    ticker.classList.remove('active');
+    return;
+  }
+
+  if(notes.length <= TICKER_THRESHOLD){
+    // Static grid mode
+    ticker.classList.remove('active');
+    grid.style.display = '';
+
+    // Only add the newest note if animating
+    if(animate){
+      const note = notes[notes.length-1];
+      const el = makeStickyEl(note, true);
+      // Remove empty msg if present
+      const empty = document.getElementById('empty-msg');
+      if(empty) empty.remove();
+      grid.appendChild(el);
+    } else {
+      // Full re-render
+      grid.innerHTML = '';
+      notes.forEach(n => grid.appendChild(makeStickyEl(n, false)));
+    }
+    resizeNotes();
+  } else {
+    // Ticker mode — scroll all notes
+    grid.style.display = 'none';
+    ticker.classList.add('active');
+
+    // Build double set for seamless loop
+    const allNotes = [...notes, ...notes];
+    track.innerHTML = allNotes.map(n => makeStickyHTML(n)).join('');
+
+    // Adjust scroll speed based on count
+    const duration = Math.max(20, Math.min(60, notes.length * 0.5));
+    track.style.animationDuration = duration + 's';
+    resizeTickerNotes();
+  }
+}
+
+function makeStickyEl(note, animate){
+  const el = document.createElement('div');
+  el.className = `sticky ${note.color}${animate?' pop':''}`;
+  el.style.setProperty('--tilt', note.tilt);
+  if(!animate){ el.style.transform = note.tilt; }
+  el.innerHTML = `
+    <div class="s-name">${esc(note.name)}</div>
+    <div class="s-line"></div>
+    <div class="s-time">+${note.mins}m</div>
+    <div class="s-type">${esc(note.type)}</div>
+  `;
+  return el;
+}
+
+function makeStickyHTML(note){
+  return `<div class="sticky ${note.color}" style="--tilt:${note.tilt};transform:${note.tilt};">
+    <div class="s-name">${esc(note.name)}</div>
+    <div class="s-line"></div>
+    <div class="s-time">+${note.mins}m</div>
+    <div class="s-type">${esc(note.type)}</div>
+  </div>`;
+}
+
+// ── RESIZE ──
+function resizeNotes(){
+  const grid = document.getElementById('notes-grid');
+  const cnt  = notes.length; if(!cnt) return;
+  const gw=grid.offsetWidth||760, gh=grid.offsetHeight||500, gap=6;
+  let best=90;
+  for(let sz=90;sz>=36;sz-=2){
+    const c=Math.floor((gw+gap)/(sz+gap)), r=Math.floor((gh+gap)/(sz+gap));
+    if(c*r>=cnt){ best=sz; break; }
+  }
+  const fn=Math.max(8,Math.floor(best*0.13))+'px';
+  const ft=Math.max(10,Math.floor(best*0.18))+'px';
+  const ftp=Math.max(6,Math.floor(best*0.08))+'px';
+  document.querySelectorAll('#notes-grid .sticky').forEach(el=>{
+    el.style.setProperty('--sz',best+'px');
+    el.style.setProperty('--fn',fn);
+    el.style.setProperty('--ft',ft);
+    el.style.setProperty('--ftp',ftp);
+    el.style.width=best+'px'; el.style.height=best+'px';
+  });
+  grid.style.gap=Math.max(3,Math.floor(best*0.06))+'px';
+}
+
+function resizeTickerNotes(){
+  document.querySelectorAll('#ticker-track .sticky').forEach(el=>{
+    el.style.width='80px'; el.style.height='80px';
+    el.style.setProperty('--sz','80px');
+    el.style.setProperty('--fn','11px');
+    el.style.setProperty('--ft','14px');
+    el.style.setProperty('--ftp','7px');
+  });
+}
+
+function updateCount(){ document.getElementById('note-count').textContent=notes.length; }
+
+function resetBoard(){
+  notes=[]; colorIdx=0; save();
+  renderBoard(false);
+  updateCount();
+  showToast('Board cleared!');
+}
+
+function testNote(){
+  const names=['Bubble','StreamQueen','DivaFan99','NightOwl','xoxoViewer','LokiBravo','QueenViewer'];
+  const types=['T1 Sub','T2 Sub','T3 Sub','100 Bits','500 Bits','Gift Sub'];
+  enqueue(
+    names[Math.floor(Math.random()*names.length)],
+    [1,2,3,5,6,10,12,18,20][Math.floor(Math.random()*9)],
+    types[Math.floor(Math.random()*types.length)]
+  );
+}
+
+let tt=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ── WEBSOCKET ──
+function connectWS(){
+  try{
+    socket=new WebSocket(WS_URL);
+    socket.onopen=()=>console.log('✅ Donor wall connected!');
+    socket.onmessage=(e)=>{
+      try{
+        const d=JSON.parse(e.data);
+        let name=d.name||'Anonymous', mins=0, type='';
+        if(d.type==='sub'){
+          const tn=(d.tier||'1000').charAt(0);
+          type=d.gifted?`Gift Sub (T${tn})`:`T${tn} Sub`;
+          mins=tn==='1'?5:tn==='2'?10:20;
+        }
+        if(d.type==='giftsub'){
+          const tn=(d.tier||'1000').charAt(0), amt=parseInt(d.amount)||1;
+          mins=(tn==='1'?5:tn==='2'?10:20)*amt;
+          type=`${amt>1?amt+'x ':''}Gift Sub`;
+        }
+        if(d.type==='cheer'){
+          const bits=parseInt(d.bits)||0; if(bits<100) return;
+          mins=Math.floor(bits/100); type=`${bits.toLocaleString()} Bits`;
+        }
+        if(mins>0) enqueue(name,mins,type);
+      }catch(err){ console.warn(err); }
+    };
+    socket.onclose=()=>setTimeout(connectWS,5000);
+  }catch(e){ setTimeout(connectWS,5000); }
+}
+
+// ── INIT ──
+load();
+renderBoard(false);
+updateCount();
+connectWS();
+</script>
+</body>
+</html>

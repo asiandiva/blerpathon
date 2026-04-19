@@ -120,6 +120,7 @@ async function subscribeToEvents(callbackUrl) {
     { type: 'channel.subscription.gift',   version: '1', condition: { broadcaster_user_id: broadcasterId } },
     { type: 'channel.subscription.message',version: '1', condition: { broadcaster_user_id: broadcasterId } },
     { type: 'channel.cheer',               version: '1', condition: { broadcaster_user_id: broadcasterId } },
+    { type: 'channel.bits.use',            version: '1', condition: { broadcaster_user_id: broadcasterId } },
   ];
 
   for (const event of events) {
@@ -377,12 +378,22 @@ app.post('/webhook', (req, res) => {
       });
     }
 
-    // ── BITS / CHEER ──
+    // ── BITS / CHEER (standard chat cheer) ──
     if (type === 'channel.cheer') {
       console.log(`⚡ Cheer received! Bits: ${event.bits}, User: ${event.user_name || 'Anonymous'}, Is Anonymous: ${event.is_anonymous}`);
       broadcast({
         type: 'cheer',
         name: event.is_anonymous ? 'Anonymous' : (event.user_name || 'Anonymous'),
+        bits: event.bits
+      });
+    }
+
+    // ── BITS USE (extension bits including Blerp) ──
+    if (type === 'channel.bits.use') {
+      console.log(`⚡ Extension Bits received! Bits: ${event.bits}, User: ${event.user_name || 'Anonymous'}, Type: ${event.type}`);
+      broadcast({
+        type: 'cheer',
+        name: event.user_name || 'Anonymous',
         bits: event.bits
       });
     }

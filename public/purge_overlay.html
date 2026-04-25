@@ -440,6 +440,7 @@ body.shake{animation:screenShake 0.5s ease-out;}
   <button class="ctrl-btn btn-start" onclick="startPurge()">🔥 Start Purge</button>
   <button class="ctrl-btn btn-stop"  onclick="stopPurge()">✕ End Purge</button>
   <button class="ctrl-btn btn-test"  onclick="testDonation()">💥 Test</button>
+  <button class="ctrl-btn" onclick="triggerEmergency()" style="background:linear-gradient(135deg,#7F0000,#DC2626);color:#FFD700;font-weight:800;box-shadow:0 2px 10px rgba(185,28,28,0.5);">🚨 Emergency</button>
 </div>
 
 <script>
@@ -765,6 +766,82 @@ function testDonation(){
 // ══════════════════════════════
 // WEBSOCKET
 // ══════════════════════════════
+const EMERGENCY_MSGS = [
+  "THE SQUAD IS CAUSING CRIME!",
+  "TIME IS GETTING DOUBLED!",
+  "CRIMES ARE HAPPENING!",
+  "THE DIVA SQUAD IS UNHINGED!",
+  "CHAOS HAS BEEN UNLEASHED!",
+  "THE PURGE IS FEEDING!",
+  "NO ONE IS SAFE RIGHT NOW!",
+  "DOUBLE TIME INCOMING!",
+  "ASIANDIVA__ HAS LOST CONTROL!",
+  "THE BLERP-A-THON IS GOING CRAZY!",
+  "SEND HELP. ACTUALLY DONT.",
+  "THE DIVAS HAVE TAKEN OVER!",
+  "IT'S GIVING PURGE ENERGY!",
+];
+
+function triggerEmergency(){
+  const msg = EMERGENCY_MSGS[Math.floor(Math.random()*EMERGENCY_MSGS.length)];
+  const cin    = document.getElementById('cinematic');
+  const black  = document.getElementById('cinBlack');
+  const flash  = document.getElementById('cinFlash');
+  const scan   = document.getElementById('cinScan');
+  const purge  = document.getElementById('cinPurge');
+  const shatter= document.getElementById('cinShatter');
+  const stat   = document.getElementById('cinStatic');
+
+  cin.classList.add('active');
+  const t = (ms, fn) => setTimeout(fn, ms);
+
+  t(0,   ()=>{ black.style.transition='opacity 0.15s'; black.style.opacity='0.85'; });
+  t(100, ()=>{ scan.style.transition='opacity 0.1s'; scan.style.opacity='0.4'; });
+  t(150, ()=>{ stat.style.transition='none'; stat.style.opacity='1'; });
+  t(220, ()=>{ stat.style.opacity='0'; });
+  t(280, ()=>{ stat.style.opacity='0.7'; });
+  t(350, ()=>{ stat.style.opacity='0'; });
+
+  t(400, ()=>{
+    purge.innerHTML='<span style="font-size:4rem;letter-spacing:0.08em;white-space:normal;text-align:center;display:block;">'+msg+'</span>';
+    purge.style.transition='none';
+    purge.style.opacity='0';
+    purge.style.transform='translate(-50%,-50%) scale(3)';
+    flashScreen(flash, 0.7, 150);
+  });
+  t(440, ()=>{
+    purge.style.transition='all 0.3s cubic-bezier(0.34,1.4,0.64,1)';
+    purge.style.opacity='1';
+    purge.style.transform='translate(-50%,-50%) scale(1)';
+    flashScreen(flash, 1, 200);
+  });
+  t(900, ()=>{ purge.style.transform='translate(-53%,-50%) scale(1)'; flashScreen(flash,0.3,80); });
+  t(960, ()=>{ purge.style.transform='translate(-47%,-50%) scale(1)'; });
+  t(1020,()=>{ purge.style.transform='translate(-50%,-50%) scale(1)'; });
+
+  t(4500,()=>{
+    shatter.style.transition='opacity 0.1s'; shatter.style.opacity='0.9';
+    flashScreen(flash, 1, 100);
+  });
+  t(4600,()=>{
+    shatter.style.transition='all 0.5s ease-in'; shatter.style.opacity='0';
+    purge.style.transition='opacity 0.3s'; purge.style.opacity='0';
+  });
+  t(4800,()=>{
+    black.style.transition='opacity 0.4s ease-out'; black.style.opacity='0';
+    scan.style.transition='opacity 0.3s'; scan.style.opacity='0';
+    stat.style.opacity='0';
+  });
+  t(5200,()=>{
+    cin.classList.remove('active');
+    [black,stat,purge,shatter,flash,scan].forEach(el=>{
+      el.style.opacity='0'; el.style.transition='none';
+    });
+    purge.innerHTML='<span style="font-size:5rem;letter-spacing:0.15em;">LET THE PURGE BEGIN</span>';
+    purge.style.transform='translate(-50%,-50%) scale(1)';
+  });
+}
+
 function connectWS(){
   try{
     socket=new WebSocket(WS_URL);
@@ -793,6 +870,7 @@ document.addEventListener('keydown', function(e) {
     document.querySelector('.controls').classList.toggle('visible', ctrlVisible);
   }
 });
+
 </script>
 </body>
 </html>

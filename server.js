@@ -402,9 +402,86 @@ app.post('/webhook', (req, res) => {
   res.status(204).send();
 });
 
+// ── TWITCH IRC CHAT LISTENER (for Blerp bits) ──
+const net = require('net');
+
+function connectTwitchChat() {
+  const client = new net.Socket();
+  const CHANNEL = 'asiandiva__';
+  const BLERP_BOT = 'blerp';
+
+  client.connect(6667, 'irc.chat.twitch.tv', () => {
+    console.log('🟣 Connected to Twitch IRC chat');
+    client.write('PASS oauth:justinfan12345
+');
+    client.write('NICK justinfan12345
+');
+    client.write(`JOIN #${CHANNEL}
+`);
+  });
+
+  let buffer = '';
+  client.on('data', (data) => {
+    buffer += data.toString();
+    const lines = buffer.split('
+');
+    buffer = lines.pop(); // keep incomplete line in buffer
+
+    lines.forEach(line => {
+      // Respond to PING to stay connected
+      if (line.startsWith('PING')) {
+        client.write('PONG :tmi.twitch.tv
+');
+        return;
+      }
+
+      // Parse chat messages
+      // Format: :username!username@username.tmi.twitch.tv PRIVMSG #channel :message
+      const match = line.match(/^:(\w+)!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$/);
+      if (!match) return;
+
+      const username = match[1].toLowerCase();
+      const message  = match[2];
+
+      // Only listen to Blerp bot messages
+      if (username !== BLERP_BOT) return;
+
+      console.log(`🟣 Blerp bot message: ${message}`);
+
+      // Parse bits from message: "[viewername] played [blerptitle] Blerp for [bitamount] [playtype]!"
+      // Look for a number before "Bits" or at the end of the message
+      const bitsMatch = message.match(/for\s+(\d+)\s+/i);
+      if (bitsMatch) {
+        const bits = parseInt(bitsMatch[1]);
+        if (bits >= 100) {
+          // Extract viewer name (first word of message)
+          const viewerName = message.split(' ')[0];
+          console.log(`⚡ Blerp bits detected! ${bits} bits from ${viewerName}`);
+          broadcast({
+            type: 'cheer',
+            name: viewerName,
+            bits: bits
+          });
+        }
+      }
+    });
+  });
+
+  client.on('close', () => {
+    console.log('🟣 Twitch IRC disconnected, reconnecting in 5s...');
+    setTimeout(connectTwitchChat, 5000);
+  });
+
+  client.on('error', (err) => {
+    console.warn('🟣 Twitch IRC error:', err.message);
+    client.destroy();
+  });
+}
+
 // ── START SERVER ──
 const server = app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  connectTwitchChat();
 });
 
 // ── ATTACH WEBSOCKET TO HTTP SERVER ──

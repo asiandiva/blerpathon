@@ -412,26 +412,21 @@ function connectTwitchChat() {
 
   client.connect(6667, 'irc.chat.twitch.tv', () => {
     console.log('🟣 Connected to Twitch IRC chat');
-    client.write('PASS oauth:justinfan12345
-');
-    client.write('NICK justinfan12345
-');
-    client.write(`JOIN #${CHANNEL}
-`);
+    client.write('PASS oauth:justinfan12345\r\n');
+    client.write('NICK justinfan12345\r\n');
+    client.write('JOIN #' + CHANNEL + '\r\n');
   });
 
   let buffer = '';
   client.on('data', (data) => {
     buffer += data.toString();
-    const lines = buffer.split('
-');
+    const lines = buffer.split('\r\n');
     buffer = lines.pop(); // keep incomplete line in buffer
 
     lines.forEach(line => {
       // Respond to PING to stay connected
       if (line.startsWith('PING')) {
-        client.write('PONG :tmi.twitch.tv
-');
+        client.write('PONG :tmi.twitch.tv\r\n');
         return;
       }
 

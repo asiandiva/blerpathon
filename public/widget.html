@@ -1436,9 +1436,12 @@ render();
           }
           if (d.type === 'cheer') {
             const bits = parseInt(d.bits) || 0;
-            if (bits < 100) return;
+            console.log('⚡ Cheer event received! Bits:', bits, 'Name:', d.name);
+            if (bits < 100) { console.log('⚡ Bits too low, ignoring'); return; }
             const mins = Math.floor(bits / 100) * CONFIG.bits100;
+            console.log('⚡ Adding', mins, 'mins for', bits, 'bits');
             addTime(mins * 60, `${bits.toLocaleString()} Bits`, d.name || 'Anonymous');
+            addHype(5);
             return;
           }
 

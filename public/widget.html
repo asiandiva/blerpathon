@@ -1327,15 +1327,8 @@ window.addEventListener('onEventReceived', function(obj) {
     return;
   }
 
-  // ── Bits ──
-  if (listener === 'cheer-latest') {
-    const bits = parseInt(event.amount) || 0;
-    const name = event.name || 'A viewer';
-    if (bits < 100) return;
-    const mins = Math.floor(bits / 100) * CONFIG.bits100;
-    addTime(mins * 60, `${bits.toLocaleString()} Bits`, name);
-    addHype(5);
-  }
+  // ── Bits handled via WebSocket server instead ──
+  // if (listener === 'cheer-latest') { ... }
 });
 
 // ── WIDGET LOAD (SE) ──
